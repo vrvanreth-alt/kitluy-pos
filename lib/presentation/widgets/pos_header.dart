@@ -10,8 +10,13 @@ import 'vehicle_selector_dialog.dart';
 
 class PosHeader extends ConsumerWidget {
   final VoidCallback onAddProduct;
+  final VoidCallback? onOpenDrawer;
 
-  const PosHeader({super.key, required this.onAddProduct});
+  const PosHeader({
+    super.key,
+    required this.onAddProduct,
+    this.onOpenDrawer,
+  });
 
   void _showExchangeRateDialog(BuildContext context, WidgetRef ref, double currentRate) {
     final controller = TextEditingController(text: currentRate.toInt().toString());
@@ -101,6 +106,14 @@ class PosHeader extends ConsumerWidget {
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
+            // Drawer Menu Button
+            IconButton(
+              icon: const Icon(Icons.menu, color: AppColors.textPrimary, size: 24),
+              tooltip: 'ម៉ឺនុយប្រព័ន្ធ (Main Menu)',
+              onPressed: onOpenDrawer,
+            ),
+            const SizedBox(width: 4),
+
             // Logo & Shop Name
             Container(
               padding: const EdgeInsets.all(8),
