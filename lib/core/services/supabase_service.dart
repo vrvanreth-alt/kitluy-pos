@@ -3,7 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SupabaseConfig {
   // បញ្ចូល Supabase Project URL និង Anon Key របស់អ្នកនៅទីនេះ
-  static const String supabaseUrl = 'YOUR_SUPABASE_URL';
+  static const String supabaseUrl = 'https://izokcxxkszdfrywodubw.supabase.co';
   static const String supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY';
 
   static bool get isConfigured =>
