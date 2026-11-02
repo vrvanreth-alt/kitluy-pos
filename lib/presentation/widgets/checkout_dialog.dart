@@ -9,6 +9,7 @@ import '../../core/utils/currency_formatter.dart';
 import '../../core/utils/khqr_generator.dart';
 import '../../data/models/order.dart';
 import '../../data/models/payment.dart';
+import '../../data/repositories/supabase_repository.dart';
 import '../state/cart_provider.dart';
 import '../state/exchange_rate_provider.dart';
 import '../state/product_provider.dart';
@@ -117,10 +118,13 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> with SingleTick
       nextServiceDate: DateTime.now().add(const Duration(days: 180)),
     );
 
-    // 4. Clear cart
+    // 4. Sync to Supabase in background
+    SupabaseRepository().createOrder(order);
+
+    // 5. Clear cart
     ref.read(cartProvider.notifier).clearCart();
 
-    // 5. Close checkout dialog & show receipt dialog
+    // 6. Close checkout dialog & show receipt dialog
     Navigator.of(context).pop();
     showDialog(
       context: context,

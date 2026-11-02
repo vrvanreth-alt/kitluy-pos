@@ -4,7 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class SupabaseConfig {
   // បញ្ចូល Supabase Project URL និង Anon Key របស់អ្នកនៅទីនេះ
   static const String supabaseUrl = 'https://izokcxxkszdfrywodubw.supabase.co';
-  static const String supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY';
+  static const String supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml6b2tjeHhrc3pkZnJ5d29kdWJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MTY1MjIsImV4cCI6MjEwOTE5MjUyMn0.gp3gFYe3Rrn_I2mazsW5uaDllLOgUb3xH9sIkMt6To8';
 
   static bool get isConfigured =>
       supabaseUrl != 'YOUR_SUPABASE_URL' &&
