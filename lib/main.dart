@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/constants/app_constants.dart';
-import 'core/services/supabase_service.dart';
+import 'core/services/firebase_service.dart';
 import 'core/theme/app_theme.dart';
 import 'presentation/screens/pos_main_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await SupabaseService.initialize();
+  await FirebaseService.initialize();
   runApp(
     const ProviderScope(
       child: KitluyPosApp(),

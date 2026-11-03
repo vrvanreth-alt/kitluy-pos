@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/currency_formatter.dart';
 import '../../data/models/vehicle.dart';
-import '../../data/repositories/supabase_repository.dart';
+import '../../data/repositories/firestore_repository.dart';
 import '../state/vehicle_provider.dart';
 
 class VehicleSelectorDialog extends ConsumerStatefulWidget {
@@ -46,7 +46,7 @@ class _VehicleSelectorDialogState extends ConsumerState<VehicleSelectorDialog> {
 
     ref.read(vehicleListProvider.notifier).addVehicle(newVehicle);
     ref.read(activeVehicleProvider.notifier).setVehicle(newVehicle);
-    SupabaseRepository().saveVehicle(newVehicle);
+    FirestoreRepository().saveVehicle(newVehicle);
     Navigator.of(context).pop();
   }
 

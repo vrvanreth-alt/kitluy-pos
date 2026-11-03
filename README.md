@@ -30,7 +30,7 @@
 - **State Management**: Flutter Riverpod 3 (Notifier Architecture)
 - **QR Standard**: EMVCo Bakong KHQR (NBC Standard) + CRC16 Generator
 - **Printing**: PDF / 80mm ESC/POS Thermal Printing (`printing`, `pdf`)
-- **Backend / Database**: Supabase (PostgreSQL with RLS & Automated Stock Triggers)
+- **Backend / Database**: Google Cloud Firestore (NoSQL Real-time Sync & Offline Cache)
 - **Hosting / CI/CD**: Firebase Hosting & GitHub Actions (Auto-deploy on push)
 - **Live Production URL**: [https://kitluy-pos.web.app](https://kitluy-pos.web.app)
 
@@ -66,11 +66,12 @@ flutter build web --release
 
 ---
 
-## 🗄️ Supabase Database Setup
-ឯកសារ SQL Schema សម្រាប់បង្កើតតារាង និង Trigger កាត់ស្តុកអូតូ ស្ថិតនៅក្នុង៖
-👉 [`supabase/schema.sql`](supabase/schema.sql)
-
-ចម្លងកូដក្នុង file ខាងលើទៅ run ក្នុង **Supabase SQL Editor** រួចកំណត់ `supabaseUrl` និង `supabaseAnonKey` ក្នុង [lib/core/services/supabase_service.dart](lib/core/services/supabase_service.dart) ជាការស្រេច។
+## 🗄️ Database Setup (Google Cloud Firestore)
+ប្រព័ន្ធប្រើប្រាស់ **Google Cloud Firestore (NoSQL Real-time)** ដែលមានទីតាំង Datacenter នៅ **Singapore (`asia-southeast1`)** ជិតប្រទេសកម្ពុជាបំផុត៖
+- **Auto-Seeding**: នៅពេលដំណើរការកម្មវិធីលើកដំបូង ប្រព័ន្ធនឹងបញ្ចូលទំនិញស្វ័យប្រវត្តិចូលទៅក្នុង Firestore Collections (`products`)
+- **Offline Mode**: គាំទ្រការលក់សូម្បីតែដាច់អ៊ីនធឺណិត (Offline Persistence) ហើយ Auto-Sync នៅពេលមានអ៊ីនធឺណិតឡើងវិញ
+- **Atomic Stock Deduction**: កាត់ស្តុកទំនិញភ្លាមៗពេលចេញវិក្កយបត្រ (Firestore Batch Transactions)
+- **Security Rules**: កំណត់នៅក្នុង [`firestore.rules`](firestore.rules)
 
 ---
 

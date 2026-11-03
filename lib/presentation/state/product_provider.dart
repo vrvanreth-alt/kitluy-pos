@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/dummy_data.dart';
 import '../../data/models/product.dart';
-import '../../data/repositories/supabase_repository.dart';
+import '../../data/repositories/firestore_repository.dart';
 
 // Selected category notifier
 class SelectedCategoryNotifier extends Notifier<ProductCategory> {
@@ -31,13 +31,13 @@ final searchQueryProvider = NotifierProvider<SearchQueryNotifier, String>(
 class ProductsNotifier extends Notifier<List<Product>> {
   @override
   List<Product> build() {
-    _loadFromSupabase();
+    _loadFromFirestore();
     return DummyData.initialProducts;
   }
 
-  Future<void> _loadFromSupabase() async {
+  Future<void> _loadFromFirestore() async {
     try {
-      final products = await SupabaseRepository().getProducts();
+      final products = await FirestoreRepository().getProducts();
       if (products.isNotEmpty) {
         state = products;
       }

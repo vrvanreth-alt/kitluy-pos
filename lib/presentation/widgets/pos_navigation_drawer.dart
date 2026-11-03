@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
-import '../../core/services/supabase_service.dart';
+import '../../core/services/firebase_service.dart';
 import '../../core/utils/currency_formatter.dart';
 import '../state/exchange_rate_provider.dart';
 import '../state/product_provider.dart';
@@ -146,7 +146,7 @@ class PosNavigationDrawer extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final products = ref.watch(productsProvider);
     final lowStockCount = products.where((p) => p.isLowStock).length;
-    final isCloudConnected = SupabaseService.isInitialized;
+    final isCloudConnected = FirebaseService.isInitialized;
 
     return Drawer(
       backgroundColor: Colors.white,
