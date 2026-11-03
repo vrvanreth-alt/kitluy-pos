@@ -12,6 +12,9 @@ fi
 # 2. Add Flutter to PATH
 export PATH="$PWD/_flutter/bin:$PATH"
 
-# 3. Build Flutter Web Release
+# 3. Configure git safe directory
+git config --global --add safe.directory "$PWD/_flutter" || true
+
+# 4. Build Flutter Web Release
 echo "Building Flutter Web Release..."
-flutter build web --release
+flutter build web --release --base-href /
