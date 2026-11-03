@@ -9,6 +9,8 @@ import '../state/product_provider.dart';
 import '../widgets/add_product_dialog.dart';
 import '../widgets/cart_sidebar.dart';
 import '../widgets/category_filter_bar.dart';
+import '../widgets/desktop_kpi_bar.dart';
+import '../widgets/desktop_sidebar.dart';
 import '../widgets/pos_header.dart';
 import '../widgets/pos_navigation_drawer.dart';
 import '../widgets/product_grid.dart';
@@ -22,6 +24,7 @@ class PosMainScreen extends ConsumerStatefulWidget {
 }
 
 class _PosMainScreenState extends ConsumerState<PosMainScreen> {
+  int _selectedSidebarIndex = 0;
   int _mobileNavIndex = 0;
 
   void _openMobileCart(BuildContext context) {
@@ -35,6 +38,76 @@ class _PosMainScreenState extends ConsumerState<PosMainScreen> {
           borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           child: const CartSidebar(isMobileBottomSheet: true),
         ),
+      ),
+    );
+  }
+
+  void _showExchangeRateDialog(BuildContext context, WidgetRef ref, double currentRate) {
+    final controller = TextEditingController(text: currentRate.toInt().toString());
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Icons.currency_exchange, color: AppColors.primary),
+            const SizedBox(width: 8),
+            Text(
+              'កំណត់អត្រាប្តូរប្រាក់ (Exchange Rate)',
+              style: GoogleFonts.kantumruyPro(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'អត្រាប្តូរប្រាក់ស្តង់ដារធនាគារជាតិនៃកម្ពុជា (1 USD = ? KHR):',
+              style: GoogleFonts.kantumruyPro(fontSize: 14, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              autofocus: true,
+              style: GoogleFonts.kantumruyPro(fontSize: 18, fontWeight: FontWeight.bold),
+              decoration: const InputDecoration(
+                prefixText: '1 USD = ',
+                suffixText: '៛ (KHR)',
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              children: [4050, 4100, 4120, 4150].map((rate) {
+                return ActionChip(
+                  label: Text('$rate ៛'),
+                  onPressed: () {
+                    controller.text = rate.toString();
+                  },
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('បោះបង់', style: GoogleFonts.kantumruyPro(color: AppColors.textSecondary)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final newRate = double.tryParse(controller.text);
+              if (newRate != null && newRate > 0) {
+                ref.read(exchangeRateProvider.notifier).updateRate(newRate);
+                Navigator.pop(ctx);
+              }
+            },
+            child: Text('រក្សាទុក', style: GoogleFonts.kantumruyPro(fontWeight: FontWeight.bold)),
+          ),
+        ],
       ),
     );
   }
@@ -173,56 +246,90 @@ class _PosMainScreenState extends ConsumerState<PosMainScreen> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final isMobile = screenWidth < 900;
+    final isDesktop = screenWidth >= 1100;
+    final isMobile = screenWidth < 768;
     final cart = ref.watch(cartProvider);
     final rate = ref.watch(exchangeRateProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      drawer: const PosNavigationDrawer(),
+      drawer: isDesktop ? null : const PosNavigationDrawer(),
       body: SafeArea(
         child: Builder(
           builder: (scaffoldContext) {
-            return Column(
+            return Row(
               children: [
-                // Top Navigation Bar (Adaptive for Mobile & Desktop)
-                PosHeader(
-                  isMobile: isMobile,
-                  onOpenDrawer: () => Scaffold.of(scaffoldContext).openDrawer(),
-                  onOpenCart: isMobile ? () => _openMobileCart(context) : null,
-                  onAddProduct: () {
-                    showDialog(
+                // 1. Permanent Desktop Sidebar (Like the Reference Laptop Mockup)
+                if (isDesktop)
+                  DesktopSidebar(
+                    selectedIndex: _selectedSidebarIndex,
+                    onSelectIndex: (idx) {
+                      setState(() => _selectedSidebarIndex = idx);
+                    },
+                    onOpenGarage: () => showDialog(
                       context: context,
-                      builder: (ctx) => const AddProductDialog(),
-                    );
-                  },
-                ),
+                      builder: (ctx) => const VehicleSelectorDialog(),
+                    ),
+                    onOpenInventory: () => _showLowStockDialog(context, ref),
+                    onOpenReport: () => _showDailyReportDialog(context, ref),
+                  ),
 
-                // Main Workspace
+                // 2. Main Workspace Body
                 Expanded(
-                  child: isMobile
-                      ? const Column(
-                          children: [
-                            CategoryFilterBar(),
-                            Expanded(child: ProductGrid()),
-                          ],
-                        )
-                      : const Row(
-                          children: [
-                            // Left Side: Catalog & Search
-                            Expanded(
-                              child: Column(
+                  child: Column(
+                    children: [
+                      // Top Navigation Header (Adaptive for Mobile & Desktop)
+                      PosHeader(
+                        isMobile: isMobile,
+                        onOpenDrawer: isDesktop ? null : () => Scaffold.of(scaffoldContext).openDrawer(),
+                        onOpenCart: isMobile ? () => _openMobileCart(context) : null,
+                        onAddProduct: () {
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => const AddProductDialog(),
+                          );
+                        },
+                      ),
+
+                      // Metric Summary KPI Bar (Matching Reference Top Row)
+                      if (!isMobile)
+                        DesktopKpiBar(
+                          onOpenVehicle: () => showDialog(
+                            context: context,
+                            builder: (ctx) => const VehicleSelectorDialog(),
+                          ),
+                          onOpenLowStock: () => _showLowStockDialog(context, ref),
+                          onEditExchangeRate: () => _showExchangeRateDialog(context, ref, rate),
+                        ),
+
+                      // Catalog & Cart Split (Desktop) or Full Catalog (Mobile)
+                      Expanded(
+                        child: isMobile
+                            ? const Column(
                                 children: [
                                   CategoryFilterBar(),
                                   Expanded(child: ProductGrid()),
                                 ],
-                              ),
-                            ),
+                              )
+                            : const Row(
+                                children: [
+                                  // Left Side: Catalog & Search
+                                  Expanded(
+                                    child: Column(
+                                      children: [
+                                        CategoryFilterBar(),
+                                        Expanded(child: ProductGrid()),
+                                      ],
+                                    ),
+                                  ),
 
-                            // Right Side: Cart Sidebar (Fixed on Desktop/iPad)
-                            CartSidebar(),
-                          ],
-                        ),
+                                  // Right Side: Cart Sidebar (Fixed on Desktop/iPad)
+                                  CartSidebar(),
+                                ],
+                              ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             );
