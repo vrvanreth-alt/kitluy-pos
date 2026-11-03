@@ -31,6 +31,8 @@
 - **QR Standard**: EMVCo Bakong KHQR (NBC Standard) + CRC16 Generator
 - **Printing**: PDF / 80mm ESC/POS Thermal Printing (`printing`, `pdf`)
 - **Backend / Database**: Supabase (PostgreSQL with RLS & Automated Stock Triggers)
+- **Hosting / CI/CD**: Firebase Hosting & GitHub Actions (Auto-deploy on push)
+- **Live Production URL**: [https://kitluy-pos.web.app](https://kitluy-pos.web.app)
 
 ---
 
@@ -38,7 +40,7 @@
 
 ### ១. Clone គម្រោង
 ```bash
-git clone https://github.com/<your-username>/kitluy-pos.git
+git clone https://github.com/vrvanreth-alt/kitluy-pos.git
 cd "KITLUY POS"
 ```
 
