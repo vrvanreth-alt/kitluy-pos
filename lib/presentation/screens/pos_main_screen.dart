@@ -5,15 +5,24 @@ import '../../core/constants/app_colors.dart';
 import '../../core/utils/currency_formatter.dart';
 import '../state/cart_provider.dart';
 import '../state/exchange_rate_provider.dart';
+import '../state/product_provider.dart';
 import '../widgets/add_product_dialog.dart';
 import '../widgets/cart_sidebar.dart';
 import '../widgets/category_filter_bar.dart';
 import '../widgets/pos_header.dart';
 import '../widgets/pos_navigation_drawer.dart';
 import '../widgets/product_grid.dart';
+import '../widgets/vehicle_selector_dialog.dart';
 
-class PosMainScreen extends ConsumerWidget {
+class PosMainScreen extends ConsumerStatefulWidget {
   const PosMainScreen({super.key});
+
+  @override
+  ConsumerState<PosMainScreen> createState() => _PosMainScreenState();
+}
+
+class _PosMainScreenState extends ConsumerState<PosMainScreen> {
+  int _mobileNavIndex = 0;
 
   void _openMobileCart(BuildContext context) {
     showModalBottomSheet(
@@ -30,8 +39,139 @@ class PosMainScreen extends ConsumerWidget {
     );
   }
 
+  void _showDailyReportDialog(BuildContext context, WidgetRef ref) {
+    final rate = ref.read(exchangeRateProvider);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Icons.assessment, color: AppColors.primary),
+            const SizedBox(width: 8),
+            Text(
+              'របាយការណ៍បិទបញ្ជី (Daily Z-Report)',
+              style: GoogleFonts.kantumruyPro(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: 450,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildReportItem('សរុបការលក់សរុប (Total Sales):', '\$680.00 (2,788,000 ៛)'),
+              _buildReportItem('ទូទាត់តាម Bakong KHQR:', '\$420.00'),
+              _buildReportItem('សាច់ប្រាក់ដុល្លារ (Cash USD):', '\$160.00'),
+              _buildReportItem('សាច់ប្រាក់រៀល (Cash KHR):', '410,000 ៛ (\$100.00)'),
+              const Divider(height: 20),
+              _buildReportItem('កាត់កងអាគុយចាស់ (Rebates):', '-\$30.00', color: const Color(0xFF16A34A)),
+              _buildReportItem('ចំនួនវិក្កយបត្រសរុប:', '12 វិក្កយបត្រ'),
+              _buildReportItem('អត្រាប្តូរប្រាក់ថ្ងៃនេះ:', '1\$ = ${CurrencyFormatter.formatNumber(rate)} ៛'),
+            ],
+          ),
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('បិទ', style: GoogleFonts.kantumruyPro()),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Widget _buildReportItem(String label, String value, {Color? color}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: GoogleFonts.kantumruyPro(fontSize: 13, color: AppColors.textSecondary)),
+          Text(
+            value,
+            style: GoogleFonts.kantumruyPro(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: color ?? AppColors.textPrimary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showLowStockDialog(BuildContext context, WidgetRef ref) {
+    final products = ref.read(productsProvider);
+    final lowStockItems = products.where((p) => p.isLowStock).toList();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Icons.warning_amber_rounded, color: AppColors.warning),
+            const SizedBox(width: 8),
+            Text(
+              'ទំនិញជិតអស់ពីស្តុក (Low Stock)',
+              style: GoogleFonts.kantumruyPro(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: 500,
+          height: 300,
+          child: lowStockItems.isEmpty
+              ? Center(
+                  child: Text(
+                    'មិនមានទំនិញជិតអស់ពីស្តុកទេ!',
+                    style: GoogleFonts.kantumruyPro(color: const Color(0xFF16A34A), fontWeight: FontWeight.bold),
+                  ),
+                )
+              : ListView.separated(
+                  itemCount: lowStockItems.length,
+                  separatorBuilder: (context, index) => const SizedBox(height: 8),
+                  itemBuilder: (context, index) {
+                    final item = lowStockItems[index];
+                    return ListTile(
+                      dense: true,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        side: const BorderSide(color: Color(0xFFFED7AA)),
+                      ),
+                      tileColor: const Color(0xFFFFF7ED),
+                      leading: Icon(item.category.icon, color: item.category.tagColor),
+                      title: Text(item.nameKh, style: GoogleFonts.kantumruyPro(fontWeight: FontWeight.bold, fontSize: 13)),
+                      subtitle: Text(item.attributeSummary, style: GoogleFonts.kantumruyPro(fontSize: 11)),
+                      trailing: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFDC2626),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          'សល់: ${item.stockQuantity}',
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('យល់ព្រម', style: GoogleFonts.kantumruyPro()),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 900;
     final cart = ref.watch(cartProvider);
@@ -89,9 +229,16 @@ class PosMainScreen extends ConsumerWidget {
           },
         ),
       ),
-      // Floating Bottom Cart Bar for Mobile screens
-      bottomNavigationBar: isMobile && !cart.isEmpty
-          ? _buildMobileCartBottomBar(context, cart, rate)
+      // Floating Bottom Cart Bar & Navigation for Mobile screens
+      bottomNavigationBar: isMobile
+          ? Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (!cart.isEmpty)
+                  _buildMobileCartBottomBar(context, cart, rate),
+                _buildMobileNavBar(context, ref),
+              ],
+            )
           : null,
     );
   }
@@ -103,22 +250,24 @@ class PosMainScreen extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
         color: Colors.white,
+        border: const Border(top: BorderSide(color: Color(0xFFE2E8F0))),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 10,
             offset: const Offset(0, -3),
           ),
         ],
       ),
       child: SafeArea(
+        top: false,
         child: Row(
           children: [
             // Cart badge & Total summary
             Expanded(
               child: InkWell(
                 onTap: () => _openMobileCart(context),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(10),
                 child: Row(
                   children: [
                     Stack(
@@ -201,6 +350,74 @@ class PosMainScreen extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMobileNavBar(BuildContext context, WidgetRef ref) {
+    final products = ref.watch(productsProvider);
+    final lowStockCount = products.where((p) => p.isLowStock).length;
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
+      ),
+      child: SafeArea(
+        top: false,
+        child: BottomNavigationBar(
+          currentIndex: _mobileNavIndex,
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: Colors.white,
+          selectedItemColor: AppColors.primary,
+          unselectedItemColor: AppColors.textSecondary,
+          selectedLabelStyle: GoogleFonts.kantumruyPro(fontSize: 11, fontWeight: FontWeight.bold),
+          unselectedLabelStyle: GoogleFonts.kantumruyPro(fontSize: 10),
+          elevation: 0,
+          onTap: (index) {
+            setState(() => _mobileNavIndex = index);
+            if (index == 1) {
+              // Garage / Vehicle selector
+              showDialog(
+                context: context,
+                builder: (ctx) => const VehicleSelectorDialog(),
+              );
+            } else if (index == 2) {
+              // Low stock inventory
+              _showLowStockDialog(context, ref);
+            } else if (index == 3) {
+              // Z-Report
+              _showDailyReportDialog(context, ref);
+            }
+          },
+          items: [
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.storefront_outlined),
+              activeIcon: Icon(Icons.storefront),
+              label: 'កាតាឡុក',
+            ),
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.directions_car_outlined),
+              activeIcon: Icon(Icons.directions_car),
+              label: 'យានដ្ឋាន',
+            ),
+            BottomNavigationBarItem(
+              icon: Badge(
+                isLabelVisible: lowStockCount > 0,
+                label: Text('$lowStockCount'),
+                backgroundColor: AppColors.warning,
+                child: const Icon(Icons.inventory_2_outlined),
+              ),
+              activeIcon: const Icon(Icons.inventory_2),
+              label: 'ស្តុក',
+            ),
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.assessment_outlined),
+              activeIcon: Icon(Icons.assessment),
+              label: 'បិទបញ្ជី',
             ),
           ],
         ),

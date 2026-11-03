@@ -17,210 +17,252 @@ class ProductCard extends ConsumerWidget {
     final exchangeRate = ref.watch(exchangeRateProvider);
     final khrPrice = CurrencyFormatter.usdToKhr(product.unitPriceUSD, exchangeRate);
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: product.isLowStock ? AppColors.warning : AppColors.cardBorder,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: product.isLowStock ? AppColors.warning : const Color(0xFFE2E8F0),
           width: product.isLowStock ? 1.5 : 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
-      child: InkWell(
-        onTap: () {
-          ref.read(cartProvider.notifier).addToCart(product);
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('បានបន្ថែម: ${product.nameKh}'),
-              duration: const Duration(milliseconds: 600),
-              backgroundColor: AppColors.primaryDark,
-              behavior: SnackBarBehavior.floating,
-              width: 320,
-            ),
-          );
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header: Category Tag & Stock Status
-              Wrap(
-                alignment: WrapAlignment.spaceBetween,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 6,
-                runSpacing: 4,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: product.category.tagColor.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(product.category.icon, size: 11, color: product.category.tagColor),
-                        const SizedBox(width: 4),
-                        Text(
-                          product.category.titleKh,
-                          style: GoogleFonts.kantumruyPro(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: product.category.tagColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Stock indicator
-                  if (product.category != ProductCategory.services)
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            ref.read(cartProvider.notifier).addToCart(product);
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    const Icon(Icons.check_circle, color: Colors.white, size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text('បានបន្ថែម: ${product.nameKh}')),
+                  ],
+                ),
+                duration: const Duration(milliseconds: 600),
+                backgroundColor: AppColors.primaryDark,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                width: 320,
+              ),
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header: Category Pill & Stock Status Indicator
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: product.isLowStock
-                            ? const Color(0xFFFEF3C7) // Amber 100
-                            : const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(6),
+                        color: product.category.tagColor.withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Text(
-                        product.isLowStock
-                            ? 'ជិតអស់ (${product.stockQuantity})'
-                            : 'ស្តុក: ${product.stockQuantity}',
-                        style: GoogleFonts.kantumruyPro(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w600,
-                          color: product.isLowStock ? const Color(0xFFB45309) : AppColors.textSecondary,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(product.category.icon, size: 11, color: product.category.tagColor),
+                          const SizedBox(width: 4),
+                          Text(
+                            product.category.titleKh,
+                            style: GoogleFonts.kantumruyPro(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: product.category.tagColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Stock indicator with dot
+                    if (product.category != ProductCategory.services)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: product.isLowStock
+                              ? const Color(0xFFFEF3C7) // Amber 100
+                              : const Color(0xFFF1F5F9), // Slate 100
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 6,
+                              height: 6,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: product.isLowStock
+                                    ? const Color(0xFFD97706)
+                                    : const Color(0xFF10B981),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              product.isLowStock
+                                  ? 'ជិតអស់ (${product.stockQuantity})'
+                                  : '${product.stockQuantity} ${product.unit}',
+                              style: GoogleFonts.kantumruyPro(
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                                color: product.isLowStock
+                                    ? const Color(0xFFB45309)
+                                    : AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                ],
-              ),
-
-              const SizedBox(height: 8),
-
-              // Product Name (Khmer)
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      product.nameKh,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.kantumruyPro(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
-                        height: 1.3,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      product.nameEn,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.kantumruyPro(
-                        fontSize: 11,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
                   ],
                 ),
-              ),
 
-              const SizedBox(height: 6),
+                const SizedBox(height: 8),
 
-              // Auto Attribute Chip (Size, Viscosity, Ah, OEM)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.background,
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                ),
-                child: Text(
-                  product.attributeSummary,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.kantumruyPro(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ),
-
-              // Battery Trade-in note if applicable
-              if (product.battery != null) ...[
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Icon(Icons.swap_horizontal_circle, size: 12, color: AppColors.secondary),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        'កាត់អាគុយចាស់: -\$${product.battery!.defaultRebateUSD.toInt()}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.kantumruyPro(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.secondary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-
-              const SizedBox(height: 8),
-              const Divider(height: 1),
-              const SizedBox(height: 8),
-
-              // Price in USD & KHR
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Column(
+                // Product Name (Khmer & English)
+                Expanded(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        CurrencyFormatter.formatUSD(product.unitPriceUSD),
+                        product.nameKh,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.kantumruyPro(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.primary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                          height: 1.3,
                         ),
                       ),
+                      const SizedBox(height: 2),
                       Text(
-                        CurrencyFormatter.formatKHR(khrPrice),
+                        product.nameEn,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.kantumruyPro(
                           fontSize: 11,
-                          fontWeight: FontWeight.w600,
                           color: AppColors.textSecondary,
                         ),
                       ),
                     ],
                   ),
+                ),
 
-                  // Add button pill
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
+                const SizedBox(height: 6),
+
+                // Auto Attribute Chip (Size, Viscosity, Ah, OEM)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Text(
+                    product.attributeSummary,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.kantumruyPro(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary,
                     ),
-                    child: const Icon(Icons.add_shopping_cart, size: 18, color: AppColors.primary),
+                  ),
+                ),
+
+                // Battery Trade-in rebate preview if applicable
+                if (product.battery != null) ...[
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(Icons.swap_horizontal_circle, size: 12, color: AppColors.secondary),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          'កាត់អាគុយចាស់: -\$${product.battery!.defaultRebateUSD.toInt()}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.kantumruyPro(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.secondary,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
-              ),
-            ],
+
+                const SizedBox(height: 8),
+                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                const SizedBox(height: 8),
+
+                // Price in USD & KHR + Add Button
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            CurrencyFormatter.formatUSD(product.unitPriceUSD),
+                            style: GoogleFonts.kantumruyPro(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.primary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            CurrencyFormatter.formatKHR(khrPrice),
+                            style: GoogleFonts.kantumruyPro(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textSecondary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+
+                    // Modern Add Button Pill
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.add_shopping_cart, size: 16, color: AppColors.primary),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
