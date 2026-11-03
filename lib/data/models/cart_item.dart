@@ -19,11 +19,15 @@ class CartItem {
 
   double get unitPrice => customUnitPriceUSD;
 
+  bool get hasTradeIn => tradeInRebateUSD > 0;
+
   /// Total for this item line after item discount and trade-in rebate
   double get lineTotalUSD {
     final sub = (customUnitPriceUSD * quantity) - discountUSD - tradeInRebateUSD;
     return sub > 0 ? sub : 0.0;
   }
+
+  double get netTotalUSD => lineTotalUSD;
 
   CartItem copyWith({
     Product? product,
@@ -43,4 +47,3 @@ class CartItem {
     );
   }
 }
-

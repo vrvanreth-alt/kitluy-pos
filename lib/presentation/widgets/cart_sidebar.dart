@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/theme/theme_helper.dart';
 import '../../core/utils/currency_formatter.dart';
 import '../state/cart_provider.dart';
 import '../state/exchange_rate_provider.dart';
@@ -19,8 +20,9 @@ class CartSidebar extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
+        backgroundColor: context.surfaceColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('បញ្ចុះតម្លៃសរុប (Overall Discount)', style: GoogleFonts.kantumruyPro(fontWeight: FontWeight.bold)),
+        title: Text('បញ្ចុះតម្លៃសរុប (Overall Discount)', style: GoogleFonts.kantumruyPro(fontWeight: FontWeight.bold, color: context.textPrimaryColor)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -48,7 +50,7 @@ class CartSidebar extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('បោះបង់', style: GoogleFonts.kantumruyPro(color: AppColors.textSecondary)),
+            child: Text('បោះបង់', style: GoogleFonts.kantumruyPro(color: context.textSecondaryColor)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -68,17 +70,18 @@ class CartSidebar extends ConsumerWidget {
     final cart = ref.watch(cartProvider);
     final exchangeRate = ref.watch(exchangeRateProvider);
     final vehicle = ref.watch(activeVehicleProvider);
+    final isDark = context.isDark;
 
     final totalKHR = cart.netTotalKHR(exchangeRate);
 
     return Container(
       width: isMobileBottomSheet ? double.infinity : 420,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         border: isMobileBottomSheet
             ? null
-            : const Border(
-                left: BorderSide(color: AppColors.cardBorder, width: 1),
+            : Border(
+                left: BorderSide(color: context.borderColor, width: 1),
               ),
       ),
       child: Column(
@@ -148,7 +151,7 @@ class CartSidebar extends ConsumerWidget {
                               '${cart.totalItemCount}',
                               style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 12,
+                                fontSize: 11,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -156,50 +159,65 @@ class CartSidebar extends ConsumerWidget {
                         ],
                       ),
                     ),
-
-                    if (!cart.isEmpty)
-                      IconButton(
+                    if (cart.items.isNotEmpty)
+                      TextButton.icon(
+                        style: TextButton.styleFrom(
+                          foregroundColor: const Color(0xFFFCA5A5),
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        icon: const Icon(Icons.delete_sweep, size: 16),
+                        label: Text(
+                          'សម្អាត',
+                          style: GoogleFonts.kantumruyPro(fontSize: 12),
+                        ),
                         onPressed: () {
                           ref.read(cartProvider.notifier).clearCart();
                         },
-                        tooltip: 'សម្អាតទំនិញទាំងអស់ (Clear)',
-                        icon: const Icon(Icons.delete_sweep, color: Color(0xFFF87171), size: 20),
                       ),
                   ],
                 ),
+
                 const SizedBox(height: 8),
 
-                // Vehicle & Mechanic info row
+                // Vehicle Tag in Cart Header
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.08),
+                    color: Colors.white.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.directions_car, color: Color(0xFF38BDF8), size: 15),
+                      const Icon(Icons.directions_car, size: 14, color: Color(0xFF6EE7B7)),
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
                           vehicle != null
                               ? '${vehicle.plateNumber} • ${vehicle.model}'
-                              : 'មិនទាន់ជ្រើសរើសឡាន (Walk-in)',
+                              : 'មិនទាន់ភ្ជាប់រថយន្ត (Walk-in Customer)',
                           style: GoogleFonts.kantumruyPro(
                             color: Colors.white,
-                            fontSize: 12,
+                            fontSize: 11,
                             fontWeight: FontWeight.w500,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const SizedBox(width: 6),
-                      Text(
-                        cart.mechanicName,
-                        style: GoogleFonts.kantumruyPro(
-                          color: const Color(0xFFFBBF24),
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: vehicle != null ? const Color(0xFF047857) : Colors.white24,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          vehicle != null ? 'បានភ្ជាប់' : 'បណ្តោះអាសន្ន',
+                          style: GoogleFonts.kantumruyPro(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],
@@ -209,27 +227,34 @@ class CartSidebar extends ConsumerWidget {
             ),
           ),
 
-          // Cart Items List
+          // Items List
           Expanded(
-            child: cart.isEmpty
+            child: cart.items.isEmpty
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.remove_shopping_cart, size: 56, color: Color(0xFFCBD5E1)),
+                        Icon(
+                          Icons.remove_shopping_cart_outlined,
+                          size: 56,
+                          color: context.textMutedColor,
+                        ),
                         const SizedBox(height: 12),
                         Text(
                           'មិនទាន់មានទំនិញក្នុងកន្ត្រកទេ',
                           style: GoogleFonts.kantumruyPro(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textSecondary,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: context.textSecondaryColor,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           'សូមចុចលើទំនិញនៅខាងឆ្វេងដើម្បីបន្ថែម',
-                          style: GoogleFonts.kantumruyPro(fontSize: 12, color: AppColors.textMuted),
+                          style: GoogleFonts.kantumruyPro(
+                            fontSize: 12,
+                            color: context.textMutedColor,
+                          ),
                         ),
                       ],
                     ),
@@ -241,19 +266,18 @@ class CartSidebar extends ConsumerWidget {
                     itemBuilder: (context, index) {
                       final item = cart.items[index];
                       final isBattery = item.product.battery != null;
-                      final hasTradeIn = item.tradeInRebateUSD > 0;
+                      final hasTradeIn = item.hasTradeIn;
 
                       return Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: AppColors.surfaceMuted,
+                          color: context.surfaceMutedColor,
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppColors.cardBorder),
+                          border: Border.all(color: context.borderColor),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Title & Delete
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -264,16 +288,19 @@ class CartSidebar extends ConsumerWidget {
                                       Text(
                                         item.product.nameKh,
                                         style: GoogleFonts.kantumruyPro(
-                                          fontSize: 13,
                                           fontWeight: FontWeight.w700,
-                                          color: AppColors.textPrimary,
+                                          fontSize: 13,
+                                          color: context.textPrimaryColor,
                                         ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
+                                      const SizedBox(height: 2),
                                       Text(
-                                        item.product.attributeSummary,
+                                        '\$${item.product.unitPriceUSD.toStringAsFixed(2)} / ${item.product.unit}',
                                         style: GoogleFonts.kantumruyPro(
                                           fontSize: 11,
-                                          color: AppColors.textSecondary,
+                                          color: context.textSecondaryColor,
                                         ),
                                       ),
                                     ],
@@ -281,16 +308,16 @@ class CartSidebar extends ConsumerWidget {
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.close, size: 16, color: AppColors.danger),
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
                                   onPressed: () {
                                     ref.read(cartProvider.notifier).removeFromCart(item.product.id);
                                   },
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(),
                                 ),
                               ],
                             ),
 
-                            // If battery: Trade-in rebate button
+                            // Battery Trade-In Rebate Toggle
                             if (isBattery) ...[
                               const SizedBox(height: 6),
                               InkWell(
@@ -301,10 +328,10 @@ class CartSidebar extends ConsumerWidget {
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: hasTradeIn ? const Color(0xFFDCFCE7) : const Color(0xFFF1F5F9),
+                                    color: hasTradeIn ? (isDark ? const Color(0xFF064E3B) : const Color(0xFFDCFCE7)) : context.surfaceColor,
                                     borderRadius: BorderRadius.circular(6),
                                     border: Border.all(
-                                      color: hasTradeIn ? const Color(0xFF22C55E) : AppColors.cardBorder,
+                                      color: hasTradeIn ? const Color(0xFF22C55E) : context.borderColor,
                                     ),
                                   ),
                                   child: Row(
@@ -313,7 +340,7 @@ class CartSidebar extends ConsumerWidget {
                                       Icon(
                                         hasTradeIn ? Icons.check_circle : Icons.swap_horizontal_circle,
                                         size: 14,
-                                        color: hasTradeIn ? const Color(0xFF16A34A) : AppColors.textSecondary,
+                                        color: hasTradeIn ? const Color(0xFF16A34A) : context.textSecondaryColor,
                                       ),
                                       const SizedBox(width: 6),
                                       Text(
@@ -323,7 +350,7 @@ class CartSidebar extends ConsumerWidget {
                                         style: GoogleFonts.kantumruyPro(
                                           fontSize: 11,
                                           fontWeight: FontWeight.w600,
-                                          color: hasTradeIn ? const Color(0xFF15803D) : AppColors.textPrimary,
+                                          color: hasTradeIn ? (isDark ? Colors.white : const Color(0xFF15803D)) : context.textPrimaryColor,
                                         ),
                                       ),
                                     ],
@@ -341,9 +368,9 @@ class CartSidebar extends ConsumerWidget {
                                 // Quantity Stepper
                                 Container(
                                   decoration: BoxDecoration(
-                                    color: Colors.white,
+                                    color: context.surfaceColor,
                                     borderRadius: BorderRadius.circular(6),
-                                    border: Border.all(color: AppColors.cardBorder),
+                                    border: Border.all(color: context.borderColor),
                                   ),
                                   child: Row(
                                     children: [
@@ -363,7 +390,7 @@ class CartSidebar extends ConsumerWidget {
                                         padding: const EdgeInsets.symmetric(horizontal: 8),
                                         child: Text(
                                           '${item.quantity}',
-                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: context.textPrimaryColor),
                                         ),
                                       ),
                                       InkWell(
@@ -382,25 +409,27 @@ class CartSidebar extends ConsumerWidget {
                                   ),
                                 ),
 
-                                // Line price
+                                // Line Total
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
                                     Text(
-                                      CurrencyFormatter.formatUSD(item.lineTotalUSD),
+                                      CurrencyFormatter.formatUSD(item.netTotalUSD),
                                       style: GoogleFonts.kantumruyPro(
+                                        fontWeight: FontWeight.w800,
                                         fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.primary,
+                                        color: context.primaryAccent,
                                       ),
                                     ),
-                                    Text(
-                                      '@ ${CurrencyFormatter.formatUSD(item.customUnitPriceUSD)}',
-                                      style: GoogleFonts.kantumruyPro(
-                                        fontSize: 10,
-                                        color: AppColors.textSecondary,
+                                    if (item.hasTradeIn)
+                                      Text(
+                                        'កាត់: -\$${item.tradeInRebateUSD.toInt()}',
+                                        style: GoogleFonts.kantumruyPro(
+                                          fontSize: 10,
+                                          color: const Color(0xFF16A34A),
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                    ),
                                   ],
                                 ),
                               ],
@@ -412,19 +441,19 @@ class CartSidebar extends ConsumerWidget {
                   ),
           ),
 
-          // Dual-Currency Calculation Summary Panel
+          // Footer: Totals & Checkout
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: const BoxDecoration(
-              color: AppColors.surface,
+            decoration: BoxDecoration(
+              color: context.surfaceColor,
               border: Border(
-                top: BorderSide(color: AppColors.cardBorder, width: 1),
+                top: BorderSide(color: context.borderColor, width: 1),
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black12,
+                  color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
                   blurRadius: 8,
-                  offset: Offset(0, -2),
+                  offset: const Offset(0, -2),
                 ),
               ],
             ),
@@ -434,10 +463,10 @@ class CartSidebar extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('សរុបរង (Subtotal):', style: GoogleFonts.kantumruyPro(fontSize: 13, color: AppColors.textSecondary)),
+                    Text('សរុបរង (Subtotal):', style: GoogleFonts.kantumruyPro(fontSize: 13, color: context.textSecondaryColor)),
                     Text(
                       CurrencyFormatter.formatUSD(cart.subtotalUSD),
-                      style: GoogleFonts.kantumruyPro(fontSize: 13, fontWeight: FontWeight.w600),
+                      style: GoogleFonts.kantumruyPro(fontSize: 13, fontWeight: FontWeight.w600, color: context.textPrimaryColor),
                     ),
                   ],
                 ),
@@ -465,7 +494,7 @@ class CartSidebar extends ConsumerWidget {
                       onTap: () => _showDiscountDialog(context, ref, cart.overallDiscountUSD),
                       child: Row(
                         children: [
-                          Text('បញ្ចុះតម្លៃ (Discount):', style: GoogleFonts.kantumruyPro(fontSize: 13, color: AppColors.textSecondary)),
+                          Text('បញ្ចុះតម្លៃ (Discount):', style: GoogleFonts.kantumruyPro(fontSize: 13, color: context.textSecondaryColor)),
                           const SizedBox(width: 4),
                           const Icon(Icons.edit, size: 12, color: AppColors.primaryLight),
                         ],
@@ -476,23 +505,23 @@ class CartSidebar extends ConsumerWidget {
                       style: GoogleFonts.kantumruyPro(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: cart.overallDiscountUSD > 0 ? AppColors.danger : AppColors.textPrimary,
+                        color: cart.overallDiscountUSD > 0 ? AppColors.danger : context.textPrimaryColor,
                       ),
                     ),
                   ],
                 ),
 
                 const SizedBox(height: 8),
-                const Divider(),
+                Divider(color: context.borderColor),
                 const SizedBox(height: 8),
 
                 // Large Dual Currency Total Box
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
-                    color: AppColors.cartTotalLight,
+                    color: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.3) : AppColors.cartTotalLight,
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFFA7F3D0)),
+                    border: Border.all(color: isDark ? const Color(0xFF059669) : const Color(0xFFA7F3D0)),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -506,14 +535,14 @@ class CartSidebar extends ConsumerWidget {
                               style: GoogleFonts.kantumruyPro(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.cartTotal,
+                                color: isDark ? const Color(0xFF34D399) : AppColors.cartTotal,
                               ),
                             ),
                             Text(
                               '1\$ = ${CurrencyFormatter.formatNumber(exchangeRate)} ៛',
                               style: GoogleFonts.kantumruyPro(
                                 fontSize: 11,
-                                color: const Color(0xFF047857),
+                                color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF047857),
                               ),
                             ),
                           ],
@@ -525,17 +554,17 @@ class CartSidebar extends ConsumerWidget {
                           Text(
                             CurrencyFormatter.formatUSD(cart.netTotalUSD),
                             style: GoogleFonts.kantumruyPro(
-                              fontSize: 20,
+                              fontSize: 22,
                               fontWeight: FontWeight.w900,
-                              color: AppColors.cartTotal,
+                              color: isDark ? Colors.white : AppColors.cartTotal,
                             ),
                           ),
                           Text(
                             CurrencyFormatter.formatKHR(totalKHR),
                             style: GoogleFonts.kantumruyPro(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF047857),
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? const Color(0xFF34D399) : const Color(0xFF047857),
                             ),
                           ),
                         ],
@@ -550,30 +579,39 @@ class CartSidebar extends ConsumerWidget {
                 SizedBox(
                   width: double.infinity,
                   height: 48,
-                  child: ElevatedButton.icon(
-                    onPressed: cart.isEmpty
+                  child: ElevatedButton(
+                    onPressed: cart.items.isEmpty
                         ? null
                         : () {
-                            if (isMobileBottomSheet) {
-                              Navigator.pop(context);
-                            }
                             showDialog(
                               context: context,
-                              barrierDismissible: false,
                               builder: (ctx) => const CheckoutDialog(),
                             );
                           },
-                    icon: const Icon(Icons.payment, size: 20),
-                    label: Text(
-                      'គិតលុយ (Checkout) • ${CurrencyFormatter.formatUSD(cart.netTotalUSD)}',
-                      style: GoogleFonts.kantumruyPro(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: cart.items.isEmpty ? null : AppColors.primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.payment, size: 20),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            'គិតលុយ (Checkout) • ${CurrencyFormatter.formatUSD(cart.netTotalUSD)}',
+                            style: GoogleFonts.kantumruyPro(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),

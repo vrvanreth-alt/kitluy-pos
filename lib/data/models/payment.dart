@@ -3,7 +3,8 @@ enum PaymentMethod {
   cashKHR('សាច់ប្រាក់ ៛ (រៀល)', 'Cash (KHR)'),
   splitCash('ទូទាត់ចម្រុះ (USD + KHR)', 'Split Cash'),
   bakongKHQR('ស្កេន Bakong KHQR', 'Bakong KHQR'),
-  bankTransfer('ផ្ទេរតាមធនាគារ', 'Bank Transfer');
+  bankTransfer('ផ្ទេរតាមធនាគារ', 'Bank Transfer'),
+  debt('ជំពាក់ (Credit/Debt)', 'Customer Debt');
 
   final String titleKh;
   final String titleEn;

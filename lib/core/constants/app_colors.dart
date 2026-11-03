@@ -18,21 +18,30 @@ class AppColors {
   static const Color danger = Color(0xFFEF4444);
   static const Color info = Color(0xFF0EA5E9);
   
-  // Background & Surfaces
+  // Light Mode Surfaces
   static const Color background = Color(0xFFF1F5F9); // Slate 100
   static const Color surface = Color(0xFFFFFFFF);
   static const Color surfaceMuted = Color(0xFFF8FAFC);
   static const Color cardBorder = Color(0xFFE2E8F0);
+  static const Color textPrimary = Color(0xFF0F172A);
+  static const Color textSecondary = Color(0xFF64748B);
+  static const Color textMuted = Color(0xFF94A3B8);
+
+  // Dark Mode Surfaces
+  static const Color darkBackground = Color(0xFF0B0F19); // Deep Slate
+  static const Color darkSurface = Color(0xFF1E293B); // Slate 800
+  static const Color darkSurfaceMuted = Color(0xFF161E2E);
+  static const Color darkCardBorder = Color(0xFF334155); // Slate 700
+  static const Color darkTextPrimary = Color(0xFFF8FAFC);
+  static const Color darkTextSecondary = Color(0xFF94A3B8);
+  static const Color darkTextMuted = Color(0xFF64748B);
   
   // Cart & POS Specific
   static const Color cartHeader = Color(0xFF0F172A); // Slate 900
   static const Color cartTotal = Color(0xFF064E3B); // Deep Emerald
   static const Color cartTotalLight = Color(0xFFECFDF5);
-  
-  // Text Colors
-  static const Color textPrimary = Color(0xFF0F172A);
-  static const Color textSecondary = Color(0xFF64748B);
-  static const Color textMuted = Color(0xFF94A3B8);
+  static const Color darkCartTotal = Color(0xFF065F46);
+  static const Color darkCartTotalBg = Color(0xFF064E3B);
   
   // Category specific tag colors
   static const Color tireColor = Color(0xFF2563EB); // Blue
@@ -41,4 +50,3 @@ class AppColors {
   static const Color partsColor = Color(0xFF059669); // Emerald
   static const Color serviceColor = Color(0xFFDC2626); // Rose
 }
-

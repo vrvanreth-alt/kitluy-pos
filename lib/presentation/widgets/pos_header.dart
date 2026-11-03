@@ -3,9 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/theme/theme_helper.dart';
 import '../../core/utils/currency_formatter.dart';
 import '../state/exchange_rate_provider.dart';
+import '../state/staff_provider.dart';
+import '../state/theme_provider.dart';
 import '../state/vehicle_provider.dart';
+import 'pin_login_dialog.dart';
 import 'vehicle_selector_dialog.dart';
 
 class PosHeader extends ConsumerWidget {
@@ -28,14 +32,15 @@ class PosHeader extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: context.surfaceColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
             const Icon(Icons.currency_exchange, color: AppColors.primary),
             const SizedBox(width: 8),
             Text(
               'កំណត់អត្រាប្តូរប្រាក់ (Exchange Rate)',
-              style: GoogleFonts.kantumruyPro(fontSize: 18, fontWeight: FontWeight.bold),
+              style: GoogleFonts.kantumruyPro(fontSize: 18, fontWeight: FontWeight.bold, color: context.textPrimaryColor),
             ),
           ],
         ),
@@ -45,7 +50,7 @@ class PosHeader extends ConsumerWidget {
           children: [
             Text(
               'អត្រាប្តូរប្រាក់ស្តង់ដារធនាគារជាតិនៃកម្ពុជា (1 USD = ? KHR):',
-              style: GoogleFonts.kantumruyPro(fontSize: 14, color: AppColors.textSecondary),
+              style: GoogleFonts.kantumruyPro(fontSize: 14, color: context.textSecondaryColor),
             ),
             const SizedBox(height: 12),
             TextField(
@@ -75,7 +80,7 @@ class PosHeader extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('បោះបង់', style: GoogleFonts.kantumruyPro(color: AppColors.textSecondary)),
+            child: Text('បោះបង់', style: GoogleFonts.kantumruyPro(color: context.textMutedColor)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -96,89 +101,104 @@ class PosHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final exchangeRate = ref.watch(exchangeRateProvider);
     final activeVehicle = ref.watch(activeVehicleProvider);
+    final currentStaff = ref.watch(currentStaffProvider);
+    final isDark = context.isDark;
 
     if (isMobile) {
       return Container(
-        height: 58,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        decoration: const BoxDecoration(
-          color: AppColors.surface,
+        height: 60,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        decoration: BoxDecoration(
+          color: context.surfaceColor,
           border: Border(
-            bottom: BorderSide(color: AppColors.cardBorder, width: 1),
+            bottom: BorderSide(color: context.borderColor, width: 1),
           ),
         ),
         child: Row(
           children: [
-            // Menu Drawer Button
-            IconButton(
-              icon: const Icon(Icons.menu, color: AppColors.textPrimary, size: 22),
-              onPressed: onOpenDrawer,
-            ),
-
-            // Logo & Compact Title
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(8),
+            if (onOpenDrawer != null)
+              IconButton(
+                icon: Icon(Icons.menu, color: context.textPrimaryColor, size: 22),
+                onPressed: onOpenDrawer,
               ),
-              child: const Icon(Icons.car_repair, color: Colors.white, size: 18),
+
+            // Staff Avatar with quick PIN switcher
+            InkWell(
+              onTap: () => showDialog(context: context, builder: (_) => const PinLoginDialog()),
+              borderRadius: BorderRadius.circular(20),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 14,
+                      backgroundColor: currentStaff.avatarColor,
+                      child: Text(
+                        currentStaff.nameKh.substring(0, 1),
+                        style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.lock_open, size: 14, color: AppColors.textMuted),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
+
+            // Vehicle Picker Compact Button
             Expanded(
               child: InkWell(
                 onTap: () => showDialog(
                   context: context,
                   builder: (ctx) => const VehicleSelectorDialog(),
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      activeVehicle != null ? activeVehicle.plateNumber : AppConstants.appNameKhmer,
-                      style: GoogleFonts.kantumruyPro(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: activeVehicle != null ? AppColors.secondary : AppColors.textPrimary,
-                      ),
-                      overflow: TextOverflow.ellipsis,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: activeVehicle != null ? const Color(0xFFECFDF5) : context.surfaceMutedColor,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: activeVehicle != null ? const Color(0xFFA7F3D0) : context.borderColor,
                     ),
-                    Text(
-                      activeVehicle != null ? activeVehicle.model : '1\$ = ${CurrencyFormatter.formatNumber(exchangeRate)} ៛',
-                      style: GoogleFonts.kantumruyPro(
-                        fontSize: 10,
-                        color: AppColors.textSecondary,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.directions_car,
+                        size: 14,
+                        color: activeVehicle != null ? AppColors.secondary : context.textSecondaryColor,
                       ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          activeVehicle != null ? activeVehicle.plateNumber : 'ជ្រើសរើសឡាន',
+                          style: GoogleFonts.kantumruyPro(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: activeVehicle != null ? const Color(0xFF065F46) : context.textPrimaryColor,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
+            const SizedBox(width: 6),
 
-            // Exchange Rate button
-            IconButton(
-              icon: const Icon(Icons.currency_exchange, size: 20, color: AppColors.primary),
-              tooltip: 'អត្រាប្តូរប្រាក់',
-              onPressed: () => _showExchangeRateDialog(context, ref, exchangeRate),
-            ),
-
-            // Vehicle Picker button
+            // Theme Switcher Button
             IconButton(
               icon: Icon(
-                Icons.directions_car,
+                isDark ? Icons.light_mode : Icons.dark_mode,
                 size: 20,
-                color: activeVehicle != null ? AppColors.secondary : AppColors.textSecondary,
+                color: isDark ? AppColors.accent : context.textSecondaryColor,
               ),
-              tooltip: 'ឡាន / ស្លាកលេខ',
-              onPressed: () => showDialog(
-                context: context,
-                builder: (ctx) => const VehicleSelectorDialog(),
-              ),
+              onPressed: () => ref.read(themeModeProvider.notifier).toggleTheme(),
             ),
 
-            // Add Product icon button
+            // Add Product Button
             IconButton(
               icon: const Icon(Icons.add_circle, size: 22, color: AppColors.secondary),
               tooltip: 'ថែមទំនិញ',
@@ -192,34 +212,27 @@ class PosHeader extends ConsumerWidget {
     return Container(
       height: 64,
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
         border: Border(
-          bottom: BorderSide(color: AppColors.cardBorder, width: 1),
+          bottom: BorderSide(color: context.borderColor, width: 1),
         ),
       ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
-            // Drawer Menu Button
-            IconButton(
-              icon: const Icon(Icons.menu, color: AppColors.textPrimary, size: 24),
-              tooltip: 'ម៉ឺនុយប្រព័ន្ធ (Main Menu)',
-              onPressed: onOpenDrawer,
-            ),
-            const SizedBox(width: 4),
-
-            // Logo & Shop Name
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(10),
+            // If drawer is enabled (tablet mode)
+            if (onOpenDrawer != null) ...[
+              IconButton(
+                icon: Icon(Icons.menu, color: context.textPrimaryColor, size: 24),
+                tooltip: 'ម៉ឺនុយប្រព័ន្ធ (Main Menu)',
+                onPressed: onOpenDrawer,
               ),
-              child: const Icon(Icons.car_repair, color: Colors.white, size: 24),
-            ),
-            const SizedBox(width: 12),
+              const SizedBox(width: 8),
+            ],
+
+            // Shop Title
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -227,16 +240,16 @@ class PosHeader extends ConsumerWidget {
                 Text(
                   AppConstants.defaultShopNameKh,
                   style: GoogleFonts.kantumruyPro(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: context.textPrimaryColor,
                   ),
                 ),
                 Text(
                   '${AppConstants.appName} • ${AppConstants.defaultShopNameEn}',
                   style: GoogleFonts.kantumruyPro(
                     fontSize: 11,
-                    color: AppColors.textSecondary,
+                    color: context.textSecondaryColor,
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -245,119 +258,185 @@ class PosHeader extends ConsumerWidget {
 
             const SizedBox(width: 24),
 
-            // Exchange Rate Pill (Clickable)
-            InkWell(
-              onTap: () => _showExchangeRateDialog(context, ref, exchangeRate),
-              borderRadius: BorderRadius.circular(20),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEFF6FF), // Blue 50
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFFBFDBFE)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.currency_exchange, size: 15, color: AppColors.primary),
-                    const SizedBox(width: 6),
-                    Text(
-                      '1\$ = ${CurrencyFormatter.formatNumber(exchangeRate)} ៛',
-                      style: GoogleFonts.kantumruyPro(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primaryDark,
-                      ),
+            // 1. Exchange Rate Pill
+          InkWell(
+            onTap: () => _showExchangeRateDialog(context, ref, exchangeRate),
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFEFF6FF),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: isDark ? const Color(0xFF3B82F6).withValues(alpha: 0.3) : const Color(0xFFBFDBFE)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.currency_exchange, size: 15, color: AppColors.primaryLight),
+                  const SizedBox(width: 6),
+                  Text(
+                    '1\$ = ${CurrencyFormatter.formatNumber(exchangeRate)} ៛',
+                    style: GoogleFonts.kantumruyPro(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white : AppColors.primaryDark,
                     ),
-                    const SizedBox(width: 4),
-                    const Icon(Icons.edit, size: 12, color: AppColors.primaryLight),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(width: 12),
-
-            // Active Vehicle / License Plate Pill (Clickable)
-            InkWell(
-              onTap: () => showDialog(
-                context: context,
-                builder: (ctx) => const VehicleSelectorDialog(),
-              ),
-              borderRadius: BorderRadius.circular(20),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: activeVehicle != null
-                      ? const Color(0xFFECFDF5) // Emerald 50
-                      : AppColors.surfaceMuted,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: activeVehicle != null
-                        ? const Color(0xFFA7F3D0)
-                        : AppColors.cardBorder,
                   ),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.edit, size: 12, color: AppColors.primaryLight),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+
+          // 2. Active Vehicle Pill
+          InkWell(
+            onTap: () => showDialog(
+              context: context,
+              builder: (ctx) => const VehicleSelectorDialog(),
+            ),
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              decoration: BoxDecoration(
+                color: activeVehicle != null
+                    ? (isDark ? const Color(0xFF064E3B) : const Color(0xFFECFDF5))
+                    : context.surfaceMutedColor,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: activeVehicle != null
+                      ? (isDark ? const Color(0xFF10B981) : const Color(0xFFA7F3D0))
+                      : context.borderColor,
                 ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.directions_car,
-                      size: 15,
-                      color: activeVehicle != null ? AppColors.secondary : AppColors.textSecondary,
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.directions_car,
+                    size: 15,
+                    color: activeVehicle != null ? AppColors.secondary : context.textSecondaryColor,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    activeVehicle != null
+                        ? '${activeVehicle.plateNumber} (${activeVehicle.model})'
+                        : 'ជ្រើសរើសឡាន / ស្លាកលេខ',
+                    style: GoogleFonts.kantumruyPro(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: activeVehicle != null
+                          ? (isDark ? Colors.white : const Color(0xFF065F46))
+                          : context.textSecondaryColor,
                     ),
+                  ),
+                  if (activeVehicle != null) ...[
                     const SizedBox(width: 6),
-                    Text(
-                      activeVehicle != null
-                          ? '${activeVehicle.plateNumber} (${activeVehicle.model})'
-                          : 'ជ្រើសរើសឡាន / ស្លាកលេខ',
-                      style: GoogleFonts.kantumruyPro(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: activeVehicle != null ? const Color(0xFF065F46) : AppColors.textSecondary,
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF047857) : Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        '${CurrencyFormatter.formatNumber(activeVehicle.currentMileage)} km',
+                        style: GoogleFonts.kantumruyPro(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : const Color(0xFF047857),
+                        ),
                       ),
                     ),
-                    if (activeVehicle != null) ...[
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          '${CurrencyFormatter.formatNumber(activeVehicle.currentMileage)} km',
-                          style: GoogleFonts.kantumruyPro(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFF047857),
-                          ),
-                        ),
-                      ),
-                    ],
-                    const SizedBox(width: 4),
-                    const Icon(Icons.arrow_drop_down, size: 16, color: AppColors.textSecondary),
                   ],
-                ),
+                  const SizedBox(width: 4),
+                  Icon(Icons.arrow_drop_down, size: 16, color: context.textSecondaryColor),
+                ],
               ),
             ),
+          ),
+          const SizedBox(width: 10),
 
-            const SizedBox(width: 12),
-
-            // Add Product Quick Button
-            ElevatedButton.icon(
-              onPressed: onAddProduct,
-              icon: const Icon(Icons.add_box, size: 16),
-              label: Text(
-                'ថែមទំនិញ',
-                style: GoogleFonts.kantumruyPro(fontSize: 12, fontWeight: FontWeight.w600),
+          // 3. Current Staff Chip (Interactive PIN Switch)
+          InkWell(
+            onTap: () => showDialog(context: context, builder: (_) => const PinLoginDialog()),
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: context.surfaceMutedColor,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: context.borderColor),
               ),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                backgroundColor: AppColors.secondary,
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 12,
+                    backgroundColor: currentStaff.avatarColor,
+                    child: Text(
+                      currentStaff.nameKh.substring(0, 1),
+                      style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    currentStaff.nameKh,
+                    style: GoogleFonts.kantumruyPro(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: context.textPrimaryColor,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: currentStaff.role.roleColor.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      currentStaff.role.titleKh.split(' ')[0],
+                      style: GoogleFonts.kantumruyPro(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: currentStaff.role.roleColor,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(Icons.lock_outline, size: 14, color: context.textMutedColor),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 10),
+
+          // 4. Dark / Light Mode Toggle Button
+          IconButton(
+            tooltip: isDark ? 'ប្តូរទៅ Light Mode' : 'ប្តូរទៅ Dark Mode',
+            icon: Icon(
+              isDark ? Icons.light_mode : Icons.dark_mode,
+              color: isDark ? AppColors.accent : AppColors.primary,
+              size: 20,
+            ),
+            onPressed: () => ref.read(themeModeProvider.notifier).toggleTheme(),
+          ),
+          const SizedBox(width: 4),
+
+          // 5. Add Product Button
+          ElevatedButton.icon(
+            onPressed: onAddProduct,
+            icon: const Icon(Icons.add_box, size: 16),
+            label: Text(
+              'ថែមទំនិញ',
+              style: GoogleFonts.kantumruyPro(fontSize: 12, fontWeight: FontWeight.w600),
+            ),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              backgroundColor: AppColors.secondary,
+            ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 }

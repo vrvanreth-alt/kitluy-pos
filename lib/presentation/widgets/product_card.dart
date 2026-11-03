@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/theme/theme_helper.dart';
 import '../../core/utils/currency_formatter.dart';
 import '../../data/models/product.dart';
 import '../state/cart_provider.dart';
@@ -16,18 +17,19 @@ class ProductCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final exchangeRate = ref.watch(exchangeRateProvider);
     final khrPrice = CurrencyFormatter.usdToKhr(product.unitPriceUSD, exchangeRate);
+    final isDark = context.isDark;
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: product.isLowStock ? AppColors.warning : const Color(0xFFE2E8F0),
+          color: product.isLowStock ? AppColors.warning : context.borderColor,
           width: product.isLowStock ? 1.5 : 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -72,7 +74,7 @@ class ProductCard extends ConsumerWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: product.category.tagColor.withValues(alpha: 0.10),
+                        color: product.category.tagColor.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
@@ -98,8 +100,8 @@ class ProductCard extends ConsumerWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                         decoration: BoxDecoration(
                           color: product.isLowStock
-                              ? const Color(0xFFFEF3C7) // Amber 100
-                              : const Color(0xFFF1F5F9), // Slate 100
+                              ? (isDark ? const Color(0xFF78350F) : const Color(0xFFFEF3C7))
+                              : context.surfaceMutedColor,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
@@ -124,8 +126,8 @@ class ProductCard extends ConsumerWidget {
                                 fontSize: 9,
                                 fontWeight: FontWeight.bold,
                                 color: product.isLowStock
-                                    ? const Color(0xFFB45309)
-                                    : AppColors.textSecondary,
+                                    ? (isDark ? const Color(0xFFFDE68A) : const Color(0xFFB45309))
+                                    : context.textSecondaryColor,
                               ),
                             ),
                           ],
@@ -148,7 +150,7 @@ class ProductCard extends ConsumerWidget {
                         style: GoogleFonts.kantumruyPro(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
+                          color: context.textPrimaryColor,
                           height: 1.3,
                         ),
                       ),
@@ -159,7 +161,7 @@ class ProductCard extends ConsumerWidget {
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.kantumruyPro(
                           fontSize: 11,
-                          color: AppColors.textSecondary,
+                          color: context.textSecondaryColor,
                         ),
                       ),
                     ],
@@ -173,9 +175,9 @@ class ProductCard extends ConsumerWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
+                    color: context.surfaceMutedColor,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    border: Border.all(color: context.borderColor),
                   ),
                   child: Text(
                     product.attributeSummary,
@@ -184,7 +186,7 @@ class ProductCard extends ConsumerWidget {
                     style: GoogleFonts.kantumruyPro(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.primary,
+                      color: isDark ? AppColors.primaryLight : AppColors.primary,
                     ),
                   ),
                 ),
@@ -213,7 +215,7 @@ class ProductCard extends ConsumerWidget {
                 ],
 
                 const SizedBox(height: 8),
-                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                Divider(height: 1, color: context.borderColor),
                 const SizedBox(height: 8),
 
                 // Price in USD & KHR + Add Button
@@ -230,7 +232,7 @@ class ProductCard extends ConsumerWidget {
                             style: GoogleFonts.kantumruyPro(
                               fontSize: 15,
                               fontWeight: FontWeight.w900,
-                              color: AppColors.primary,
+                              color: isDark ? AppColors.primaryLight : AppColors.primary,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -240,7 +242,7 @@ class ProductCard extends ConsumerWidget {
                             style: GoogleFonts.kantumruyPro(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.textSecondary,
+                              color: context.textSecondaryColor,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -254,10 +256,10 @@ class ProductCard extends ConsumerWidget {
                     Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.1),
+                        color: AppColors.primary.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(Icons.add_shopping_cart, size: 16, color: AppColors.primary),
+                      child: const Icon(Icons.add_shopping_cart, size: 16, color: AppColors.primaryLight),
                     ),
                   ],
                 ),
