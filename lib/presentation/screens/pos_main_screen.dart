@@ -246,7 +246,7 @@ class _PosMainScreenState extends ConsumerState<PosMainScreen> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final isDesktop = screenWidth >= 1100;
+    final isDesktop = screenWidth >= 1000;
     final isMobile = screenWidth < 768;
     final cart = ref.watch(cartProvider);
     final rate = ref.watch(exchangeRateProvider);

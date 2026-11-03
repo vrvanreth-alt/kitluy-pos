@@ -299,3 +299,4 @@ class DesktopSidebar extends ConsumerWidget {
     );
   }
 }
+

@@ -205,3 +205,4 @@ class DesktopKpiBar extends ConsumerWidget {
     );
   }
 }
+
