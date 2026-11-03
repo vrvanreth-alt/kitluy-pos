@@ -9,7 +9,9 @@ import '../state/vehicle_provider.dart';
 import 'checkout_dialog.dart';
 
 class CartSidebar extends ConsumerWidget {
-  const CartSidebar({super.key});
+  final bool isMobileBottomSheet;
+
+  const CartSidebar({super.key, this.isMobileBottomSheet = false});
 
   void _showDiscountDialog(BuildContext context, WidgetRef ref, double currentDiscount) {
     final controller = TextEditingController(text: currentDiscount > 0 ? currentDiscount.toString() : '');
@@ -70,15 +72,33 @@ class CartSidebar extends ConsumerWidget {
     final totalKHR = cart.netTotalKHR(exchangeRate);
 
     return Container(
-      width: 420,
-      decoration: const BoxDecoration(
+      width: isMobileBottomSheet ? double.infinity : 420,
+      decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(
-          left: BorderSide(color: AppColors.cardBorder, width: 1),
-        ),
+        border: isMobileBottomSheet
+            ? null
+            : const Border(
+                left: BorderSide(color: AppColors.cardBorder, width: 1),
+              ),
       ),
       child: Column(
         children: [
+          if (isMobileBottomSheet)
+            Container(
+              color: AppColors.cartHeader,
+              padding: const EdgeInsets.only(top: 10, bottom: 4),
+              child: Center(
+                child: Container(
+                  width: 44,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.white54,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+            ),
+
           // Header: Cart Title & Vehicle
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -94,8 +114,18 @@ class CartSidebar extends ConsumerWidget {
                     Expanded(
                       child: Row(
                         children: [
-                          const Icon(Icons.shopping_cart_checkout, color: Colors.white, size: 18),
-                          const SizedBox(width: 8),
+                          if (isMobileBottomSheet) ...[
+                            IconButton(
+                              icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 26),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                            const SizedBox(width: 8),
+                          ] else ...[
+                            const Icon(Icons.shopping_cart_checkout, color: Colors.white, size: 18),
+                            const SizedBox(width: 8),
+                          ],
                           Flexible(
                             child: Text(
                               'វិក្កយបត្រលក់ (Order Cart)',
@@ -524,6 +554,9 @@ class CartSidebar extends ConsumerWidget {
                     onPressed: cart.isEmpty
                         ? null
                         : () {
+                            if (isMobileBottomSheet) {
+                              Navigator.pop(context);
+                            }
                             showDialog(
                               context: context,
                               barrierDismissible: false,

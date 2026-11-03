@@ -39,16 +39,31 @@ class ProductGrid extends ConsumerWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Calculate dynamic column count based on available width
-        final crossAxisCount = (constraints.maxWidth / 220).floor().clamp(2, 6);
+        final width = constraints.maxWidth;
+        final int crossAxisCount;
+        final double childAspectRatio;
+
+        if (width < 450) {
+          crossAxisCount = 2;
+          childAspectRatio = 0.68;
+        } else if (width < 750) {
+          crossAxisCount = 2;
+          childAspectRatio = 0.74;
+        } else if (width < 1100) {
+          crossAxisCount = 3;
+          childAspectRatio = 0.78;
+        } else {
+          crossAxisCount = (width / 220).floor().clamp(3, 6);
+          childAspectRatio = 0.78;
+        }
 
         return GridView.builder(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(width < 500 ? 10 : 16),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
-            childAspectRatio: 0.78,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
+            childAspectRatio: childAspectRatio,
+            crossAxisSpacing: width < 500 ? 8 : 12,
+            mainAxisSpacing: width < 500 ? 8 : 12,
           ),
           itemCount: products.length,
           itemBuilder: (context, index) {

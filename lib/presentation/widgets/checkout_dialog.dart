@@ -142,71 +142,146 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> with SingleTick
     final totalUSD = cart.netTotalUSD;
     final totalKHR = cart.netTotalKHR(rate);
 
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isMobile = screenWidth < 768;
+
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      insetPadding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 10 : 40,
+        vertical: isMobile ? 12 : 24,
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
-        width: 780,
-        height: 640,
-        padding: const EdgeInsets.all(24),
+        width: isMobile ? screenWidth : 780,
+        height: isMobile ? screenHeight * 0.92 : 640,
+        padding: EdgeInsets.all(isMobile ? 12 : 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Modal Header: Invoice No, Total to pay in Dual Currency
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            if (isMobile) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'ទូទាត់ប្រាក់ (Checkout)',
+                          style: GoogleFonts.kantumruyPro(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          'វិក្កយបត្រ: $_invoiceNo',
+                          style: GoogleFonts.kantumruyPro(fontSize: 11, color: AppColors.textSecondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.cartTotalLight,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFA7F3D0)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'ទូទាត់ប្រាក់ (Payment Checkout)',
-                      style: GoogleFonts.kantumruyPro(fontSize: 20, fontWeight: FontWeight.bold),
+                      'ទឹកប្រាក់ត្រូវបង់:',
+                      style: GoogleFonts.kantumruyPro(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF047857)),
                     ),
-                    Text(
-                      'វិក្កយបត្រ: $_invoiceNo • ${vehicle != null ? vehicle.plateNumber : "Walk-in"}',
-                      style: GoogleFonts.kantumruyPro(fontSize: 13, color: AppColors.textSecondary),
+                    Row(
+                      children: [
+                        Text(
+                          CurrencyFormatter.formatUSD(totalUSD),
+                          style: GoogleFonts.kantumruyPro(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.cartTotal,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '(${CurrencyFormatter.formatKHR(totalKHR)})',
+                          style: GoogleFonts.kantumruyPro(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF047857),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-
-                // Dual Currency Total Display
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: AppColors.cartTotalLight,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFA7F3D0)),
-                  ),
-                  child: Row(
+              ),
+            ] else ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            CurrencyFormatter.formatUSD(totalUSD),
-                            style: GoogleFonts.kantumruyPro(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.cartTotal,
-                            ),
-                          ),
-                          Text(
-                            CurrencyFormatter.formatKHR(totalKHR),
-                            style: GoogleFonts.kantumruyPro(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF047857),
-                            ),
-                          ),
-                        ],
+                      Text(
+                        'ទូទាត់ប្រាក់ (Payment Checkout)',
+                        style: GoogleFonts.kantumruyPro(fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        'វិក្កយបត្រ: $_invoiceNo • ${vehicle != null ? vehicle.plateNumber : "Walk-in"}',
+                        style: GoogleFonts.kantumruyPro(fontSize: 13, color: AppColors.textSecondary),
                       ),
                     ],
                   ),
-                ),
-              ],
-            ),
 
-            const SizedBox(height: 16),
+                  // Dual Currency Total Display
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.cartTotalLight,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFA7F3D0)),
+                    ),
+                    child: Row(
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              CurrencyFormatter.formatUSD(totalUSD),
+                              style: GoogleFonts.kantumruyPro(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.cartTotal,
+                              ),
+                            ),
+                            Text(
+                              CurrencyFormatter.formatKHR(totalKHR),
+                              style: GoogleFonts.kantumruyPro(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF047857),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+
+            const SizedBox(height: 12),
 
             // Tab Bar for Payment Methods
             Container(
@@ -216,19 +291,21 @@ class _CheckoutDialogState extends ConsumerState<CheckoutDialog> with SingleTick
               ),
               child: TabBar(
                 controller: _tabController,
+                isScrollable: isMobile,
+                tabAlignment: isMobile ? TabAlignment.start : TabAlignment.fill,
                 indicator: BoxDecoration(
                   color: AppColors.primary,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 labelColor: Colors.white,
                 unselectedLabelColor: AppColors.textSecondary,
-                labelStyle: GoogleFonts.kantumruyPro(fontWeight: FontWeight.w600, fontSize: 13),
+                labelStyle: GoogleFonts.kantumruyPro(fontWeight: FontWeight.w600, fontSize: 12),
                 indicatorSize: TabBarIndicatorSize.tab,
                 tabs: const [
-                  Tab(icon: Icon(Icons.qr_code, size: 18), text: 'Bakong KHQR'),
-                  Tab(icon: Icon(Icons.attach_money, size: 18), text: 'សាច់ប្រាក់ USD'),
-                  Tab(icon: Icon(Icons.payments, size: 18), text: 'សាច់ប្រាក់ ៛ (KHR)'),
-                  Tab(icon: Icon(Icons.shuffle, size: 18), text: 'ទូទាត់ចម្រុះ (Split)'),
+                  Tab(icon: Icon(Icons.qr_code, size: 16), text: 'Bakong KHQR'),
+                  Tab(icon: Icon(Icons.attach_money, size: 16), text: 'សាច់ប្រាក់ USD'),
+                  Tab(icon: Icon(Icons.payments, size: 16), text: 'សាច់ប្រាក់ ៛ (KHR)'),
+                  Tab(icon: Icon(Icons.shuffle, size: 16), text: 'ចម្រុះ (Split)'),
                 ],
               ),
             ),

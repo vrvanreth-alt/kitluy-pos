@@ -11,11 +11,15 @@ import 'vehicle_selector_dialog.dart';
 class PosHeader extends ConsumerWidget {
   final VoidCallback onAddProduct;
   final VoidCallback? onOpenDrawer;
+  final bool isMobile;
+  final VoidCallback? onOpenCart;
 
   const PosHeader({
     super.key,
     required this.onAddProduct,
     this.onOpenDrawer,
+    this.isMobile = false,
+    this.onOpenCart,
   });
 
   void _showExchangeRateDialog(BuildContext context, WidgetRef ref, double currentRate) {
@@ -92,6 +96,98 @@ class PosHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final exchangeRate = ref.watch(exchangeRateProvider);
     final activeVehicle = ref.watch(activeVehicleProvider);
+
+    if (isMobile) {
+      return Container(
+        height: 58,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        decoration: const BoxDecoration(
+          color: AppColors.surface,
+          border: Border(
+            bottom: BorderSide(color: AppColors.cardBorder, width: 1),
+          ),
+        ),
+        child: Row(
+          children: [
+            // Menu Drawer Button
+            IconButton(
+              icon: const Icon(Icons.menu, color: AppColors.textPrimary, size: 22),
+              onPressed: onOpenDrawer,
+            ),
+
+            // Logo & Compact Title
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.car_repair, color: Colors.white, size: 18),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: InkWell(
+                onTap: () => showDialog(
+                  context: context,
+                  builder: (ctx) => const VehicleSelectorDialog(),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      activeVehicle != null ? activeVehicle.plateNumber : AppConstants.appNameKhmer,
+                      style: GoogleFonts.kantumruyPro(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: activeVehicle != null ? AppColors.secondary : AppColors.textPrimary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      activeVehicle != null ? activeVehicle.model : '1\$ = ${CurrencyFormatter.formatNumber(exchangeRate)} ៛',
+                      style: GoogleFonts.kantumruyPro(
+                        fontSize: 10,
+                        color: AppColors.textSecondary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Exchange Rate button
+            IconButton(
+              icon: const Icon(Icons.currency_exchange, size: 20, color: AppColors.primary),
+              tooltip: 'អត្រាប្តូរប្រាក់',
+              onPressed: () => _showExchangeRateDialog(context, ref, exchangeRate),
+            ),
+
+            // Vehicle Picker button
+            IconButton(
+              icon: Icon(
+                Icons.directions_car,
+                size: 20,
+                color: activeVehicle != null ? AppColors.secondary : AppColors.textSecondary,
+              ),
+              tooltip: 'ឡាន / ស្លាកលេខ',
+              onPressed: () => showDialog(
+                context: context,
+                builder: (ctx) => const VehicleSelectorDialog(),
+              ),
+            ),
+
+            // Add Product icon button
+            IconButton(
+              icon: const Icon(Icons.add_circle, size: 22, color: AppColors.secondary),
+              tooltip: 'ថែមទំនិញ',
+              onPressed: onAddProduct,
+            ),
+          ],
+        ),
+      );
+    }
 
     return Container(
       height: 64,

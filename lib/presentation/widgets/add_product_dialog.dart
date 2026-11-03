@@ -161,11 +161,14 @@ class _AddProductDialogState extends ConsumerState<AddProductDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
-        width: 650,
-        padding: const EdgeInsets.all(24),
+        width: screenWidth < 700 ? screenWidth : 650,
+        padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
           child: SingleChildScrollView(

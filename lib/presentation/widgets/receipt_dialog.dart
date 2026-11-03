@@ -96,13 +96,20 @@ class ReceiptDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('dd/MM/yyyy HH:mm:ss');
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isMobile = screenWidth < 500;
 
     return Dialog(
+      insetPadding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 12 : 40,
+        vertical: isMobile ? 16 : 24,
+      ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
-        width: 440,
-        height: 700,
-        padding: const EdgeInsets.all(20),
+        width: isMobile ? screenWidth : 440,
+        height: isMobile ? screenHeight * 0.90 : 700,
+        padding: EdgeInsets.all(isMobile ? 14 : 20),
         child: Column(
           children: [
             // Modal Title & Actions

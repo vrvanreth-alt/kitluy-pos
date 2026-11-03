@@ -54,16 +54,19 @@ class _VehicleSelectorDialogState extends ConsumerState<VehicleSelectorDialog> {
   Widget build(BuildContext context) {
     final activeVehicle = ref.watch(activeVehicleProvider);
     final vehicleList = ref.watch(vehicleListProvider);
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
-        width: 560,
+        width: screenWidth < 600 ? screenWidth : 560,
         padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             // Header
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -277,6 +280,7 @@ class _VehicleSelectorDialogState extends ConsumerState<VehicleSelectorDialog> {
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 }
